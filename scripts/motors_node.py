@@ -34,6 +34,7 @@ def manual_control(data):
     for i in xrange(4):
         data.axes[i] >>= 9
         data.axes[i] += 64
+        
     # turret control
     if (data.buttons[5]): # RB
         rc.ForwardBackwardM1(TE_ADDR, data.axes[HR])
@@ -52,12 +53,17 @@ def manual_control(data):
 
     update_info()
 
-# turret, shoulder, elbow, wrist1, wrist2
+# turret, elbow, wrist1, wrist2, shoulder
 # angular displacement in signed radians
 def position_control(speed, ang_disp):
     dist = np.multiply(ang_disp / tau, TICKS_PER_REV)
     #TODO write x5 for 5 motors lol
-    rc.SpeedDistanceM1(addr, speed[i], dist[i])
+    rc.SpeedDistanceM1(TE_ADDR, speed[0], dist[0])
+    rc.SpeedDistanceM2(TE_ADDR, speed[1], dist[1])
+    rc.SpeedDistanceM1(WR_ADDR, speed[2], dist[2])
+    rc.SpeedDistanceM2(WR_ADDR, speed[3], dist[3])
+    rc.SpeedDistanceM1(SH_ADDR, speed[4], dist[4])
+                       
         
 def update_info(): #TODO actually make readable + useful updates
         enc1 = rc.ReadEncM1(address)
