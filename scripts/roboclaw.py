@@ -308,7 +308,7 @@ class Roboclaw:
 	def _write1(self,address,cmd,val):
 		trys=self._trystimeout
 		while trys:
-			self._sendcommand(address,cmd)
+		        self._sendcommand(address,cmd)
 			self._writebyte(val)
 			if self._writechecksum():
 				return True
