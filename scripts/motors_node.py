@@ -1,66 +1,65 @@
 #!/usr/bin/env python
 
 import rospy
+import numpy as np
+from math import tau
 from std_msgs.msg import String
 from sensor_msgs.msg import Joy
 from roboclaw import Roboclaw
 
-class Motor_Node:
+TE_ADDR = 0x80
+WR_ADDR = 0X81
+SH_ADDR = 0x82
 
-    def __init__(self):
-        self.uart = '/dev/ttyS0'
-        self.baud = 115200
+HL = 0
+VL = 1
+HR = 2
+HL = 3
+
+#TODO - actually figure out values
+#turret, elbow, wrist1, wrist2, shoulder
+TICKS_PER_REV = np.array([60000, 60000, 60000, 60000, 60000])
+
+def init(uart='/dev/ttyS0', baud=115200):        
+    global rc = Roboclaw(uart, baud)
+    rc.Open()
         
-        self.tur_elb = Roboclaw(self.uart, self.baud)
-        self.wrist = Roboclaw(self.uart, self.baud)
-        self.shoulder = Roboclaw(self.uart, self.baud)
+    global pub = rospy.Publisher('arm_motion', String, queue_size=10)
+    rospy.Subscriber('joy', Joy, manual_control)
+    rospy.init_node('base_motors', anonymous=True)
+    rospy.spin()
 
-        self.tur_elb.Open()
-        self.wrist.Open()
-        self.shoulder.Open()
-        
-        self.TE_ADDR = 0x80
-        self.WR_ADDR = 0X81
-        self.SH_ADDR = 0x82
-
-        self.HL = 0
-        self.VL = 1
-        self.HR = 2
-        self.HL = 3
-        
-        self.pubsub()
-
-    def get_commands(self, inmsg):
-        rospy.loginfo(rospy.get_caller_id() + ' ' + data.data)
-
-        # turret control
-        if (data.buttons[7]): # right forward button hopefully
-            self.move_motors(0, val=(64 + int(data.axes[self.HR]/2)))
-        # wrist control
-        else:
-            self.move_motors(2, val=(64 + int(data.axes[self.HR]/2)))
-            self.move_motors(3, val=(64 + int(data.axes[self.VR]/2)))
-
-        # turret control
-        if (data.buttons[6]): # left forward button hopefully
-            self.move_motors(0, val=(64 + int(data.axes[self.HL]/2)))
-        # shoulder and elbow control
-        else:
-            self.move_motors(1, val=(64 + int(data.axes[self.HL]/2)))
-            self.move_motors(4, val=(64 + int(data.axes[self.VL]/2)))
+def manual_control(data):
+    # convert from 2 signed bytes to 1 unsigned byte
+    for i in xrange(4):
+        data.axes[i] >>= 9
+        data.axes[i] += 64
+    # turret control
+    if (data.buttons[5]): # RB
+        rc.ForwardBackwardM1(TE_ADDR, data.axes[HR])
+    # wrist control
+    else:
+        rc.ForwardBackwardM1(WR_ADDR, data.axes[HR])
+        rc.ForwardBackwardM2(WR_ADDR, data.axes[VR])
             
-        self.update_info()
-        
-    def move_motors(self, command, val=0):
-        {
-            0: self.tur_elb.ForwardBackwardM1(self.TE_ADDR, val),
-            1: self.tur_elb.ForwardBackwardM2(self.TE_ADDR, val),
-            2: self.wrist.ForwardBackwardM1(self.WR_ADDR, val),
-            3: self.wrist.ForwardBackwardM2(self.WR_ADDR, val),
-            4: self.shoulder.ForwardBackwardM1(self.SH_ADDR, val),
-        }[command]
+    # turret control
+    if (data.buttons[4]): # LB
+        rc.ForwardBackwardM1(TE_ADDR, data.axes[HL])                    
+    # shoulder and elbow control
+    else:
+        rc.ForwardBackwardM2(TE_ADDR, data.axes[HL])
+        rc.ForwardBackwardM1(SH_ADDR, data.axes[VL])
 
-    def update_info(self): #TODO actually make readable + useful updates
+    update_info()
+
+# turret, shoulder, elbow, wrist1, wrist2
+# angular displacement in signed radians
+def position_control(speed, ang_disp):
+    dist = np.multiply(ang_disp / tau, TICKS_PER_REV)
+    #TODO write x5 for 5 motors lol
+    rc.SpeedDistanceM1(addr, speed[i], dist[i])
+        
+def update_info(): #TODO actually make readable + useful updates
         enc1 = rc.ReadEncM1(address)
 	enc2 = rc.ReadEncM2(address)
 	speed1 = rc.ReadSpeedM1(address)
@@ -91,12 +90,6 @@ class Motor_Node:
 
         #rospy.loginfo(str) #for debugging purposes
         self.pub.publish(str)
-
-    def pubsub(self):
-        self.pub = rospy.Publisher('arm_motion', String, queue_size=10)
-        rospy.Subscriber('joy', Joy, self.get_commands)
-        rospy.init_node('base_motors', anonymous=True)
-        rospy.spin()
-
+        
 if __name__ == '__main__':
-    m = Motor_Node()
+    init()
