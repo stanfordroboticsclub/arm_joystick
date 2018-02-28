@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<launch>
+        <node name="joy_node" pkg="joy" type="joy_node"/>
+        <node name="motors_node" pkg="arm_joystick" type="motors_node.py" output="screen"/>
+</launch>
