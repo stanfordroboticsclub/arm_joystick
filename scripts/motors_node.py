@@ -70,9 +70,11 @@ def position_control(speed, ang_disp):
         
 def update_info(): #TODO actually make readable + useful updates
     print("doing stuff")
+    enc1 = rc.ReadEncM1(TE_ADDR)
+    enc2 = rc.ReadEncM2(TE_ADDR)
+    print(enc1)
+    print(enc2)
     """
-    enc1 = rc.ReadEncM1(address)
-    enc2 = rc.ReadEncM2(address)
     speed1 = rc.ReadSpeedM1(address)
     speed2 = rc.ReadSpeedM2(address)
         
