@@ -1,18 +1,21 @@
 from roboclaw import Roboclaw
 import time
 
-rc = Roboclaw('/dev/ttyS0', 115200)
+print('start')
+
+rc = Roboclaw('/dev/ttyTHS0', 115200)
 rc.Open()
-addr = 128
+addr = 129
+"""
 for i in xrange(128):
     rc.ForwardM1(addr, i)
-
+"""
 print('why')
 
 #Linux comport name
-roboclaw = Roboclaw('/dev/ttyS0', 115200)
+roboclaw = Roboclaw('/dev/ttyTHS0', 115200)
 roboclaw.Open()
-address = 0x80
+address = 0x81
 if roboclaw.ForwardMixed(address, 100):
     print("why aren't the motors moving?!")
 

@@ -9,20 +9,20 @@ from sensor_msgs.msg import Joy
 from roboclaw import Roboclaw
 
 TAU = 2 * pi
-TE_ADDR = 0x80
+TE_ADDR = 0X80
 WR_ADDR = 0X81
-SH_ADDR = 0x82
+SH_ADDR = 0X82
 
 HL = 0
 VL = 1
 HR = 2
 VR = 3
 
-#TODO - actually figure out values
-#turret, elbow, wrist1, wrist2, shoulder
+#TODO - ACTUALLY FIGURE OUT VALUES
+#TURRET, ELBOW, WRIST1, WRIST2, SHOULDER
 TICKS_PER_REV = np.array([60000, 60000, 60000, 60000, 60000])
 
-def init(uart='/dev/ttyS0', baud=115200):        
+def init(uart='/dev/TTYTHS0', baud=115200):        
     global rc
     rc = Roboclaw(uart, baud)
     rc.Open()
